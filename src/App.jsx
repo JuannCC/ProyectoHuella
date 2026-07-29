@@ -235,11 +235,19 @@ function AnimalForm({ initial, onSave, onClose }) {
 function PageAnimales({ animals, onAdd, onView }) {
   const [search, setSearch] = useState("");
   const [fE, setFE] = useState(""); const [fS, setFS] = useState("");
-  const filtered = animals.filter(a=>{
-    const q=search.toLowerCase();
-    return (!q||a.nombre?.toLowerCase().includes(q)||a.ubicacion?.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))
-      &&(!fE||a.estado===fE)&&(!fS||a.especie===fS);
-  });
+  
+  const filtered = animals.filter(a => {
+  const q = search.toLowerCase();
+
+  return (
+    !q ||
+    a.nombre?.toLowerCase().includes(q) ||
+    a.ubicacion?.toLowerCase().includes(q) ||
+    String(a.id).includes(q)
+  ) &&
+  (!fE || a.estado === fE) &&
+  (!fS || a.especie === fS);
+});
   return (
     <div>
       <div className="page-header-row">
@@ -388,15 +396,15 @@ export default function App() {
       const { data, error } = await supabase
         .from("animals")
         .select("*");
-    
+
       if (error) {
         console.error(error);
         return;
       }
-    
-      setAnimals(data);
+
+      setAnimals(data || []);
     }
-  
+
     loadAnimals();
   }, []);
 
@@ -407,15 +415,70 @@ export default function App() {
     return `${prefix}-${String(animals.filter(a=>a.id.startsWith(prefix)).length+1).padStart(4,"0")}`;
   };
 
-  const handleSave = (form) => {
-    if(editAnimal) {
-      setAnimals(prev=>prev.map(a=>a.id===editAnimal.id?{...a,...form}:a));
+  const handleSave = async (form) => {
+    if (editAnimal) {
+      const { error } = await supabase
+        .from("animals")
+        .update({
+          nombre: form.nombre,
+          especie: form.especie,
+          sexo: form.sexo,
+          edad: form.edad,
+          estado: form.estado,
+          castrado: form.castrado,
+          salud: form.salud,
+          ubicacion: form.ubicacion,
+          fecha: form.fecha,
+          confianza: form.confianza,
+          responsable: form.responsable,
+          notas: form.notas,
+        })
+        .eq("id", editAnimal.id);
+
+      if (error) {
+        console.error(error);
+        alert("Error al actualizar el animal");
+        return;
+      }
+
       setToast("Cambios guardados correctamente");
     } else {
-      setAnimals(prev=>[{...form,id:nextId(form.especie),eventos:[{fecha:form.fecha,texto:"Animal registrado en el sistema"}]},...prev]);
+      const { error } = await supabase
+        .from("animals")
+        .insert({
+          nombre: form.nombre,
+          especie: form.especie,
+          sexo: form.sexo,
+          edad: form.edad,
+          estado: form.estado,
+          castrado: form.castrado,
+          salud: form.salud,
+          ubicacion: form.ubicacion,
+          fecha: form.fecha,
+          confianza: form.confianza,
+          responsable: form.responsable,
+          notas: form.notas,
+        });
+
+      if (error) {
+        console.error(error);
+        alert("Error al guardar el animal");
+        return;
+      }
+
       setToast("Animal registrado correctamente");
     }
-    setShowForm(false); setEditAnimal(null); setViewAnimal(null);
+
+    // Recargar animales desde Supabase
+    const { data } = await supabase
+      .from("animals")
+      .select("*");
+
+    setAnimals(data || []);
+
+    setShowForm(false);
+    setEditAnimal(null);
+    setViewAnimal(null);
   };
 
   const TABS = [{id:"animales",label:"🐾 Animales"},{id:"mapa",label:"🗺️ Mapa"},{id:"impacto",label:"📊 Impacto"},{id:"album",label:"📸 Álbum"}];
