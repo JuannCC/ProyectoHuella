@@ -377,26 +377,27 @@ function PageAlbum({ animals }) {
 
 export default function App() {
   const [page, setPage] = useState("animales");
-  const [animals, setAnimals] = useState(SEED);
+  const [animals, setAnimals] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editAnimal, setEditAnimal] = useState(null);
   const [viewAnimal, setViewAnimal] = useState(null);
   const [toast, setToast] = useState("");
 
   useEffect(() => {
-  console.log("APP CARGADA");
-
-  async function testDB() {
-    console.log("CONSULTANDO SUPABASE");
-    const { data, error } = await supabase
-      .from("animals")
-      .select("*");
-
-    console.log("SUPABASE DATA:", data);
-    console.log("SUPABASE ERROR:", error);
-  }
-
-  testDB();
+    async function loadAnimals() {
+      const { data, error } = await supabase
+        .from("animals")
+        .select("*");
+    
+      if (error) {
+        console.error(error);
+        return;
+      }
+    
+      setAnimals(data);
+    }
+  
+    loadAnimals();
   }, []);
 
   useEffect(()=>{ if(!toast) return; const t=setTimeout(()=>setToast(""),2500); return()=>clearTimeout(t); },[toast]);
