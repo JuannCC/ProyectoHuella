@@ -488,7 +488,7 @@ export default function App() {
       <style>{CSS}</style>
       <div className="app">
         <nav className="nav">
-          <div className="nav-logo">Prueba<span>Stray</span> 🐾</div>
+          <div className="nav-logo">Zero<span>Stray</span> 🐾</div>
           <div className="nav-tabs">
             {TABS.map(t=><button key={t.id} className={`nav-tab ${page===t.id?"active":""}`} onClick={()=>setPage(t.id)}>{t.label}</button>)}
           </div>
