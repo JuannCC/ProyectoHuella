@@ -5,14 +5,17 @@ export default function PageMapa({ animals }) {
   return (
     <div>
       <div className="page-header"><div className="page-title">Mapa de la comunidad</div><div className="page-sub">Distribución geográfica de los casos</div></div>
-      <div className="map-area">
-        {PINS.map((p,i)=><div key={i} className="map-pin" style={{left:p.x,top:p.y}}>{ESTADO[p.estado]?.emoji}</div>)}
-        <div style={{position:"relative",zIndex:1,textAlign:"center",color:"#5a7a4a",fontSize:".85rem"}}>
-          <div style={{fontSize:"1.8rem",marginBottom:"6px"}}>🗺️</div>
-          Versión 0.1 — Mapa interactivo<br/>
-          <span style={{fontSize:".75rem",opacity:.8}}>Integración con Google Maps / Mapbox próximamente</span>
+        <div style={{borderRadius:"var(--r)",overflow:"hidden",border:"1px solid var(--border)",height:360,position:"relative"}}>
+          <iframe
+            title="mapa"
+            width="100%" height="100%"
+            style={{border:"none"}}
+            src="https://www.openstreetmap.org/export/embed.html?bbox=-63.4,-31.8,-63.3,-31.7&layer=mapnik"
+          />
+          <div style={{position:"absolute",top:12,right:12,background:"white",borderRadius:8,padding:"6px 12px",fontSize:".78rem",boxShadow:"0 2px 8px rgba(0,0,0,.15)"}}>
+            📍 Ajustá las coordenadas a tu ciudad
+          </div>
         </div>
-      </div>
       <div className="map-legend">{Object.entries(ESTADO).map(([k,v])=><div className="map-legend-item" key={k}><span>{v.emoji}</span>{v.label}</div>)}</div>
       <div style={{marginTop:"24px"}}>
         <div className="section-title">Resumen por zona</div>

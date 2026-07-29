@@ -1,33 +1,35 @@
 import { useEffect, useState } from "react";
-
 import "./styles/global.css";
-
 import PageAnimales from "./pages/PageAnimales";
 import PageMapa from "./pages/PageMapa";
 import PageImpacto from "./pages/PageImpacto";
 import PageAlbum from "./pages/PageAlbum";
-
+import PageAdoptantes from "./pages/PageAdoptantes";
+import PageTransito from "./pages/PageTransito";
+import PageRanking from "./pages/PageRanking";
 import AnimalForm from "./components/AnimalForm";
 import AnimalDetail from "./components/AnimalDetail";
+import { getAnimals, createAnimal, updateAnimal } from "./services/animalsService";
 
-import {
-  getAnimals,
-  createAnimal,
-  updateAnimal
-} from "./services/animalsService";
+const TABS = [
+  { id: "animales",   label: "🐾 Animales" },
+  { id: "mapa",       label: "🗺️ Mapa" },
+  { id: "impacto",    label: "📊 Impacto" },
+  { id: "album",      label: "📸 Álbum" },
+  { id: "ranking",    label: "🏆 Ranking" },
+  { id: "adoptantes", label: "🏠 Adoptantes" },
+  { id: "transito",   label: "🏘️ Tránsito" },
+];
 
 export default function App() {
-
-  const [page, setPage] = useState("animales");
-  const [animals, setAnimals] = useState([]);
-
-  const [showForm, setShowForm] = useState(false);
+  const [page, setPage]               = useState("animales");
+  const [animals, setAnimals]         = useState([]);
+  const [showForm, setShowForm]       = useState(false);
   const [selectedAnimal, setSelectedAnimal] = useState(null);
-  const [editAnimal, setEditAnimal] = useState(null);
+  const [editAnimal, setEditAnimal]   = useState(null);
+  const [menuOpen, setMenuOpen]       = useState(false);
 
-  useEffect(() => {
-    loadAnimals();
-  }, []);
+  useEffect(() => { loadAnimals(); }, []);
 
   async function loadAnimals() {
     try {
@@ -45,9 +47,7 @@ export default function App() {
       } else {
         await createAnimal(form);
       }
-
       await loadAnimals();
-
       setShowForm(false);
       setEditAnimal(null);
       setSelectedAnimal(null);
@@ -57,28 +57,25 @@ export default function App() {
     }
   }
 
+  function navigate(id) {
+    setPage(id);
+    setMenuOpen(false);
+  }
+
   function renderPage() {
     switch (page) {
-      case "mapa":
-        return <PageMapa animals={animals} />;
-
-      case "impacto":
-        return <PageImpacto animals={animals} />;
-
-      case "album":
-        return <PageAlbum animals={animals} />;
-
+      case "mapa":       return <PageMapa animals={animals} />;
+      case "impacto":    return <PageImpacto animals={animals} />;
+      case "album":      return <PageAlbum animals={animals} />;
+      case "ranking":    return <PageRanking animals={animals} />;
+      case "adoptantes": return <PageAdoptantes />;
+      case "transito":   return <PageTransito />;
       default:
         return (
           <PageAnimales
             animals={animals}
-            onAdd={() => {
-              setEditAnimal(null);
-              setShowForm(true);
-            }}
-            onView={(animal) => {
-              setSelectedAnimal(animal);
-            }}
+            onAdd={() => { setEditAnimal(null); setShowForm(true); }}
+            onView={(animal) => setSelectedAnimal(animal)}
           />
         );
     }
@@ -87,52 +84,54 @@ export default function App() {
   return (
     <div className="app">
       <nav className="nav">
-        <div className="nav-logo">
-          🐾 <span>Proyecto Huella</span>
-        </div>
+        <div className="nav-logo">🐾 <span>Proyecto Huella</span></div>
 
+        {/* Desktop tabs */}
         <div className="nav-tabs">
-          <button
-            className={`nav-tab ${page === "animales" ? "active" : ""}`}
-            onClick={() => setPage("animales")}
-          >
-            Animales
-          </button>
-
-          <button
-            className={`nav-tab ${page === "mapa" ? "active" : ""}`}
-            onClick={() => setPage("mapa")}
-          >
-            Mapa
-          </button>
-
-          <button
-            className={`nav-tab ${page === "impacto" ? "active" : ""}`}
-            onClick={() => setPage("impacto")}
-          >
-            Impacto
-          </button>
-
-          <button
-            className={`nav-tab ${page === "album" ? "active" : ""}`}
-            onClick={() => setPage("album")}
-          >
-            Álbum
-          </button>
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              className={`nav-tab ${page === t.id ? "active" : ""}`}
+              onClick={() => navigate(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
         </div>
+
+        {/* Hamburguesa mobile */}
+        <button
+          className="hamburger"
+          onClick={() => setMenuOpen(v => !v)}
+          aria-label="Menú"
+        >
+          <span style={{ transform: menuOpen ? "rotate(45deg) translate(5px,5px)" : "none" }} />
+          <span style={{ opacity: menuOpen ? 0 : 1 }} />
+          <span style={{ transform: menuOpen ? "rotate(-45deg) translate(5px,-5px)" : "none" }} />
+        </button>
       </nav>
 
-      <main className="main">
-        {renderPage()}
-      </main>
+      {/* Menú mobile desplegable */}
+      {menuOpen && (
+        <div className="mobile-menu">
+          {TABS.map(t => (
+            <button
+              key={t.id}
+              className={`mobile-tab ${page === t.id ? "active" : ""}`}
+              onClick={() => navigate(t.id)}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <main className="main">{renderPage()}</main>
 
       {showForm && (
         <AnimalForm
           initial={editAnimal}
-          onClose={() => {
-            setShowForm(false);
-            setEditAnimal(null);
-          }}
+          onClose={() => { setShowForm(false); setEditAnimal(null); }}
           onSave={handleSave}
         />
       )}
