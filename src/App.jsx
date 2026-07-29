@@ -384,7 +384,10 @@ export default function App() {
   const [toast, setToast] = useState("");
 
   useEffect(() => {
+  console.log("APP CARGADA");
+
   async function testDB() {
+    console.log("CONSULTANDO SUPABASE");
     const { data, error } = await supabase
       .from("animals")
       .select("*");
