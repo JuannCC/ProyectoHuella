@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "./lib/supabase";
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Inter:wght@400;500&display=swap');
@@ -381,6 +382,19 @@ export default function App() {
   const [editAnimal, setEditAnimal] = useState(null);
   const [viewAnimal, setViewAnimal] = useState(null);
   const [toast, setToast] = useState("");
+
+  useEffect(() => {
+  async function testDB() {
+    const { data, error } = await supabase
+      .from("animals")
+      .select("*");
+
+    console.log("SUPABASE DATA:", data);
+    console.log("SUPABASE ERROR:", error);
+  }
+
+  testDB();
+  }, []);
 
   useEffect(()=>{ if(!toast) return; const t=setTimeout(()=>setToast(""),2500); return()=>clearTimeout(t); },[toast]);
 
