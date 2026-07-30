@@ -76,7 +76,7 @@ export default function AnimalForm({ initial, onSave, onClose }) {
                 </div>
             }
           </div>
-          <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={handleFoto} />
+          <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleFoto} />
           {preview && <button className="btn btn-secondary btn-sm" style={{ marginTop: 6 }} onClick={() => { setPreview(""); set("foto_url", ""); }}>Quitar foto</button>}
         </div>
 
