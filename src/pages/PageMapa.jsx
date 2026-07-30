@@ -1,55 +1,95 @@
+import { useEffect } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 import { ESTADO } from "../constants/animals";
 
-export default function PageMapa({ animals }) {
-  // Bbox calculado alrededor de -32.756855, -64.337333 con ~2km de margen
-  const src = "https://www.openstreetmap.org/export/embed.html?bbox=-64.3573,-32.7769,-64.3174,-32.7368&layer=mapnik&marker=-32.756855,-64.337333";
+// Fix del ícono que Leaflet pierde con Vite
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl:       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl:     "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+});
+
+// Íconos por estado
+const iconColor = {
+  calle:        "red",
+  seguimiento:  "orange",
+  recuperacion: "blue",
+  adopcion:     "violet",
+  adoptado:     "green",
+};
+
+function makeIcon(estado) {
+  const color = iconColor[estado] || "grey";
+  return L.divIcon({
+    className: "",
+    html: `<div style="
+      width:28px;height:28px;border-radius:50% 50% 50% 0;
+      background:${color === "red" ? "#D94040" : color === "orange" ? "#F5A623" : color === "blue" ? "#1A6FA8" : color === "violet" ? "#3558C8" : "#4A7C59"};
+      border:3px solid white;box-shadow:0 2px 6px rgba(0,0,0,.35);
+      transform:rotate(-45deg);
+    "></div>`,
+    iconSize: [28, 28],
+    iconAnchor: [14, 28],
+    popupAnchor: [0, -30],
+  });
+}
+
+export default function PageMapa({ animals, onUpdateAnimal }) {
+  const center = [-32.756855, -64.337333];
+  const conPin = animals.filter(a => a.lat && a.lng);
 
   return (
     <div>
       <div className="page-header">
         <div className="page-title">Mapa de la comunidad</div>
-        <div className="page-sub">Distribución geográfica de los casos</div>
+        <div className="page-sub">
+          {conPin.length} de {animals.length} animales tienen ubicación en el mapa.
+        </div>
       </div>
 
-      <div style={{ borderRadius: "var(--r)", overflow: "hidden", border: "1px solid var(--border)", height: 380, position: "relative" }}>
-        <iframe
-          title="mapa"
-          width="100%"
-          height="100%"
-          style={{ border: "none" }}
-          src={src}
-        />
+      <div style={{ borderRadius: "var(--r)", overflow: "hidden", border: "1px solid var(--border)", height: 420 }}>
+        <MapContainer center={center} zoom={14} style={{ height: "100%", width: "100%" }}>
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          {conPin.map(a => (
+            <Marker key={a.id} position={[a.lat, a.lng]} icon={makeIcon(a.estado)}>
+              <Popup>
+                <div style={{ minWidth: 160 }}>
+                  <strong>{a.nombre || "Sin nombre"}</strong><br />
+                  {ESTADO[a.estado]?.emoji} {ESTADO[a.estado]?.label}<br />
+                  <small>{a.ubicacion || ""}</small>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MapContainer>
       </div>
 
       <div className="map-legend" style={{ marginTop: 14 }}>
         {Object.entries(ESTADO).map(([k, v]) => (
-          <div className="map-legend-item" key={k}>
-            <span>{v.emoji}</span>{v.label}
-          </div>
+          <div className="map-legend-item" key={k}><span>{v.emoji}</span>{v.label}</div>
         ))}
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <div className="section-title">Resumen por zona</div>
-        <div className="grid-2" style={{ gap: 12, marginTop: 10 }}>
-          {(() => {
-            const conteo = {};
-            animals.forEach(a => {
-              const zona = a.ubicacion || "Sin datos";
-              conteo[zona] = (conteo[zona] || 0) + 1;
-            });
-            const sorted = Object.entries(conteo).sort((a, b) => b[1] - a[1]).slice(0, 6);
-            return sorted.length > 0
-              ? sorted.map(([zona, cant]) => (
-                  <div className="card" key={zona} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: ".88rem" }}>📍 {zona}</span>
-                    <span style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: "1.1rem" }}>{cant}</span>
-                  </div>
-                ))
-              : <div style={{ color: "var(--ink-m)", fontSize: ".88rem" }}>No hay animales registrados todavía.</div>;
-          })()}
+      {/* Animales sin pin */}
+      {animals.filter(a => !a.lat || !a.lng).length > 0 && (
+        <div className="card" style={{ marginTop: 20 }}>
+          <div className="section-title">📍 Sin ubicación en el mapa</div>
+          <p style={{ fontSize: ".82rem", color: "var(--ink-m)", marginBottom: 12 }}>
+            Estos animales no tienen pin. Editálos para asignarles una ubicación.
+          </p>
+          {animals.filter(a => !a.lat || !a.lng).map(a => (
+            <div key={a.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid var(--border)" }}>
+              <span style={{ fontSize: ".88rem" }}>{a.especie === "gato" ? "🐱" : "🐶"} {a.nombre || "Sin nombre"} — {a.ubicacion || "sin zona"}</span>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
     </div>
   );
 }
