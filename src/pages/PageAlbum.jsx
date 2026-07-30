@@ -9,7 +9,10 @@ export default function PageAlbum({ animals }) {
         : <div className="album-grid">
             {adoptados.map(a=>(
               <div className="album-card" key={a.id}>
-                <div className="album-photo">{a.especie==="gato"?"🐱":a.especie==="perro"?"🐶":"🐾"}</div>
+                <div className="album-photo">                {a.foto_url
+                  ? <img src={a.foto_url} alt={a.nombre || "animal"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : (a.especie === "gato" ? "🐱" : a.especie === "perro" ? "🐶" : "🐾")}
+                  </div>
                 <div className="album-body">
                   <div className="album-name">{a.nombre||"Sin nombre"}</div>
                   <div className="album-dates">📍 {a.ubicacion}<br/>🗓️ Encontrado: {a.fecha}<br/>🏠 Adoptado ✓</div>
