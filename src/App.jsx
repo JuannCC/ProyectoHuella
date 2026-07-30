@@ -81,7 +81,7 @@ export default function App() {
   return (
     <div className="app">
       <nav className="nav">
-        <div className="nav-logo">🐾 <span>Proyecto Huella</span></div>
+        <div className="nav-logo" onClick={() => navigate("animales")} style={{cursor:"pointer"}}>🐾 <span>Proyecto Huella</span></div>
 
         {/* Desktop tabs */}
         <div className="nav-tabs">

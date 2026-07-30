@@ -44,7 +44,12 @@ export default function PageAnimales({ animals, onAdd, onView }) {
         : <div className="animal-grid">
             {filtered.map(a=>(
               <div className="animal-card" key={a.id} onClick={()=>onView(a)}>
-                <div className="animal-photo">{a.especie==="gato"?"🐱":a.especie==="perro"?"🐶":"🐾"}</div>
+              <div className="animal-photo">
+                {a.foto_url
+                  ? <img src={a.foto_url} alt={a.nombre || "animal"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : (a.especie === "gato" ? "🐱" : a.especie === "perro" ? "🐶" : "🐾")
+                }
+              </div>                
                 <div className="animal-body">
                   <div className="animal-name">{a.nombre||"Sin nombre"}</div>
                   <div className="animal-meta">{a.id} · {a.ubicacion}</div>
